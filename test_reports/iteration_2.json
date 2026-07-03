@@ -1,0 +1,25 @@
+{
+  "summary": "Retested QR scanner bug fix. All 5 scenarios pass: (1) scan-qr-btn opens the overlay and it stays open, (2) camera failure headless -> fallback mode with qr-upload-btn + user-facing message (no crash, no auto-close), (3) upload of /tmp/test_vcard_qr.png via qr-file-input decodes vCard, closes scanner, and correctly fills input-ragione-sociale='Rossi Import SRL', input-nome-buyer='Mario Rossi', input-email='mario@rossiimport.it', input-ruolo='Buyer', input-cellulare='+39 333 1234567' plus paese='Italia', with a success toast 'Dati importati dal QR (6 campi)', (4) close (X) button dismisses overlay cleanly, (5) no uncaught page errors and no white-screen crash. Only console output is the expected NotFoundError from html5-qrcode when no camera is present, which is handled by the .catch fallback.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_backend.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "QRScanner.jsx handleFile: e.target.value='' is cleared before the file is used - it works because file is captured into `file` const first, but this is subtle; consider moving the reset into the finally block for clarity.",
+    "QRScanner cleanup effect only stops the camera when startedRef.current is true; if user closes during 'loading' mode (before .then/.catch resolves) the pending html5-qrcode start could still call setState on unmounted component. Consider guarding with an isMounted flag inside .then/.catch.",
+    "The recurring console.error 'QR camera error ...' on every open is noisy in production; consider console.warn or gating on NODE_ENV.",
+    "LeadForm.jsx passes onClose=(err) => { setShowScanner(false); if (err) toast.error(err); } but QRScanner now always calls onClose() with no arg on X-click, so the err branch is effectively dead code - safe but worth cleaning up."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested this iteration", "frontend": "100% (5/5 QR scenarios)"},
+  "test_credentials": "n/a for this iteration",
+  "seed_data_creation": "No new seed data; only used the pre-existing /tmp/test_vcard_qr.png fixture.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "QR scanner fallback flow is fully verified. Camera happy-path was NOT exercised (headless has no camera by design). If a future run has a fake camera available, verify that qr-upload-btn is still rendered alongside camera preview (current JSX renders it whenever mode==='camera' || mode==='fallback', so it should be visible in both). Backend regression suite untouched at /app/backend/tests/test_backend.py.",
+  "rca of the issue": "Original bug: clicking Scansiona QR closed the overlay with an error toast when no camera / permission denied. Root cause was that the html5-qrcode start().catch() branch invoked onClose(err), tearing down the modal instead of degrading. Fix in QRScanner.jsx switches to a two-mode UI (camera | fallback), keeps the overlay mounted on failure, and adds a hidden file input + Html5Qrcode.scanFile() path so the user can decode a QR image without a camera. Verified end-to-end: overlay stays visible, upload button appears, uploading /tmp/test_vcard_qr.png decodes the vCard and fills all 6 Anagrafica fields with a success toast; close button dismisses the overlay cleanly."
+}
