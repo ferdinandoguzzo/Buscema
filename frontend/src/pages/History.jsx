@@ -112,7 +112,7 @@ export default function History() {
             <img src={LOGO_URL} alt="Buscema" className="h-28 w-auto" data-testid="login-logo" />
             <div className="flex items-center gap-2 text-buscema-green">
               <Lock className="w-5 h-5" />
-              <h1 className="font-heading text-xl font-semibold">Storico Contatti</h1>
+              <h1 className="font-heading text-xl font-semibold">Elenco Contatti Raccolti</h1>
             </div>
           </div>
           <div className="space-y-2">
@@ -156,7 +156,7 @@ export default function History() {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")} data-testid="back-btn" className="text-buscema-green">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-heading text-lg font-semibold text-buscema-green">Storico Contatti</h1>
+            <h1 className="font-heading text-lg font-semibold text-buscema-green">Elenco Contatti Raccolti</h1>
           </div>
           <Button data-testid="export-csv-btn" onClick={handleExport} className="bg-buscema-gold hover:bg-buscema-gold/90 text-white gap-2 h-11 rounded-xl">
             <Download className="w-4 h-4" /> <span className="hidden sm:inline">Esporta CSV</span>

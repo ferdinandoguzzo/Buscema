@@ -113,9 +113,9 @@ export default function LeadForm() {
             variant="ghost"
             onClick={() => navigate("/storico")}
             data-testid="go-to-history-btn"
-            className="text-buscema-green hover:bg-buscema-green/5 gap-2 h-11"
+            className="text-buscema-green hover:bg-buscema-green hover:text-white gap-2 h-11 font-semibold transition-colors"
           >
-            <HistoryIcon className="w-5 h-5" /> <span className="hidden sm:inline">Storico</span>
+            <HistoryIcon className="w-5 h-5" /> <span className="hidden sm:inline">Elenco Contatti Raccolti</span>
           </Button>
         </div>
         <div className="flex h-1 w-full">
