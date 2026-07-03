@@ -109,7 +109,7 @@ export default function History() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-buscema-green p-4">
         <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 space-y-6">
           <div className="flex flex-col items-center gap-3">
-            <img src={LOGO_URL} alt="Buscema" className="h-16 w-auto" data-testid="login-logo" />
+            <img src={LOGO_URL} alt="Buscema" className="h-28 w-auto" data-testid="login-logo" />
             <div className="flex items-center gap-2 text-buscema-green">
               <Lock className="w-5 h-5" />
               <h1 className="font-heading text-xl font-semibold">Storico Contatti</h1>

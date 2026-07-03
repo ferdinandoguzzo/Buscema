@@ -108,7 +108,7 @@ export default function LeadForm() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={LOGO_URL} alt="Buscema Gastronomia" className="h-12 w-auto" data-testid="brand-logo" />
+          <img src={LOGO_URL} alt="Buscema Gastronomia" className="h-20 sm:h-24 w-auto -my-2" data-testid="brand-logo" />
           <Button
             variant="ghost"
             onClick={() => navigate("/storico")}
