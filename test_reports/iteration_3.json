@@ -1,0 +1,27 @@
+{
+  "summary": "Full backend + frontend verification of the new Storico view/edit/save feature and the LeadForm refactor to shared LeadSections. Backend: 8/8 pytest cases pass (2 auth + 6 new GET/PUT single-lead tests including 401 without token, 404 for unknown id, id + created_at preservation on update, spoofed id/created_at rejected, and GET-after-PUT persistence). Frontend E2E via Playwright on the live preview URL passed all 7 scenarios: (1) create-lead flow via LeadForm still works after refactor (Alpha Foods / Giulia / priorita-b / star-rating-4 / lingua-it saved), (2) navigate to /storico + login with buscema2026, (3) click lead-card-<id> opens lead-detail-overlay with all fields prefilled (input-ragione-sociale='Alpha Foods', input-nome-buyer='Giulia', detail-input-nome-fiera='TEST_Cibus_Auto', detail-input-anno='2026'), (4) lead-detail-cancel-btn closes overlay without saving, (5) lead-detail-close (X) closes overlay without saving, (6) editing ragione to 'Alpha Foods MODIFICATA' + priorita-a and clicking lead-detail-save-btn triggers 'Modifiche salvate' toast, closes overlay, and the history list refreshes via onSaved with the updated ragione and A badge, (7) no console errors, no white screen. Test leads cleaned up from MongoDB after the run.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_backend.py",
+    "/app/test_reports/pytest/pytest_results_it3.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LeadDetail.jsx handleSave sends the full form back to PUT /api/leads/{id}. Backend correctly overrides id and created_at, but the client-side payload still contains a stale id/created_at from the fetched doc, which is fine but slightly wasteful. Non-blocking.",
+    "LeadDetail's useEffect depends on onClose which is a new function reference on every parent render; if History re-renders during load it could re-trigger the GET. In practice History does not, but wrapping onClose in useCallback in History.jsx (or omitting it from the dep array) would be safer.",
+    "No DELETE endpoint exists on the API - test data can only be cleaned up via direct DB access. Consider adding DELETE /api/leads/{id} for future admin/testing needs.",
+    "server.py update_lead accepts a Lead body which requires all fields; a PATCH-style partial update would be nicer for future partial edits, but current spec is 'full form save' so PUT is acceptable.",
+    "Regression note: LeadSections is now shared by LeadForm and LeadDetail - verified both mount without duplicate data-testid collisions because the two views are never mounted at the same time (LeadDetail is a full-screen overlay above History, not above LeadForm)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_backend.py (added TestLeadGetUpdate class with 6 tests for GET/PUT single lead)"
+  ],
+  "success_rate": {"backend": "100% (8/8 relevant tests: 2 auth + 6 new GET/PUT)", "frontend": "100% (7/7 scenarios)"},
+  "test_credentials": "History password: buscema2026 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created and then cleaned up: 1 'Alpha Foods' lead via UI (updated to 'Alpha Foods MODIFICATA') + 4 TEST_-prefixed leads via pytest. All 5 removed from MongoDB after the run via direct delete_many on TEST_/MODIFICATA/TEST_Cibus_Auto matches.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend suite at /app/backend/tests/test_backend.py now covers auth, list, filters, single GET, single PUT (with id/created_at preservation), export CSV, and OCR (uses real Emergent LLM key). The Storico view/edit/save feature and the LeadForm->LeadSections refactor are fully working end-to-end. For any future changes to LeadSections, both LeadForm (create) and LeadDetail (edit) must be re-tested since they share the component. No pending bugs.",
+  "rca of the issue": "N/A - feature verification, no bug to root-cause. All new behavior works as specified: GET /api/leads/{id} auth-gated + returns single lead without _id leakage, PUT preserves id + created_at even when client tries to spoof them, LeadDetail overlay pre-fills all fields from GET, save issues PUT + toast + close + parent fetchLeads refresh, cancel/X buttons close without saving."
+}

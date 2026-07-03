@@ -220,6 +220,26 @@ async def export_leads(
     )
 
 
+@api_router.get("/leads/{lead_id}", response_model=Lead)
+async def get_lead(lead_id: str, _: bool = Depends(verify_token)):
+    doc = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Scheda non trovata")
+    return Lead(**doc)
+
+
+@api_router.put("/leads/{lead_id}", response_model=Lead)
+async def update_lead(lead_id: str, lead: Lead, _: bool = Depends(verify_token)):
+    existing = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Scheda non trovata")
+    data = lead.model_dump()
+    data["id"] = lead_id
+    data["created_at"] = existing.get("created_at", data["created_at"])
+    await db.leads.replace_one({"id": lead_id}, data)
+    return Lead(**data)
+
+
 @api_router.get("/")
 async def root():
     return {"message": "Buscema Gastronomia API"}

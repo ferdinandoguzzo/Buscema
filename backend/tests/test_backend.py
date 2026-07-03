@@ -194,6 +194,82 @@ class TestLeadsCRUD:
         assert items[0]["ragione_sociale"] == f"{marker} Srl"
 
 
+# ------------------------------------------------------------------ single lead GET / PUT
+class TestLeadGetUpdate:
+    def _create(self, api, ragione="TEST_GetUpd"):
+        p = dict(FULL_PAYLOAD)
+        p["ragione_sociale"] = f"{ragione}_{uuid.uuid4().hex[:6]}"
+        r = api.post(f"{API}/leads", json=p)
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    def test_get_single_lead_requires_auth(self, api):
+        created = self._create(api)
+        r = api.get(f"{API}/leads/{created['id']}")
+        assert r.status_code == 401
+
+    def test_get_single_lead_ok(self, api, auth_headers):
+        created = self._create(api)
+        r = api.get(f"{API}/leads/{created['id']}", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["id"] == created["id"]
+        assert data["ragione_sociale"] == created["ragione_sociale"]
+        assert data["priorita"] == "A"
+        assert data["potenziale"] == 5
+        assert data["interesse_brand"] == ["Buscema", "Nonno Gino"]
+        # No mongo _id leaked
+        assert "_id" not in data
+
+    def test_get_single_lead_not_found(self, api, auth_headers):
+        r = api.get(f"{API}/leads/{uuid.uuid4()}", headers=auth_headers)
+        assert r.status_code == 404
+
+    def test_put_lead_requires_auth(self, api):
+        created = self._create(api)
+        r = api.put(f"{API}/leads/{created['id']}", json=created)
+        assert r.status_code == 401
+
+    def test_put_lead_updates_and_preserves_id_created_at(self, api, auth_headers):
+        created = self._create(api, ragione="TEST_PutUpd")
+        original_id = created["id"]
+        original_created_at = created["created_at"]
+
+        updated_payload = dict(created)
+        updated_payload["ragione_sociale"] = created["ragione_sociale"] + "_MODIFICATA"
+        updated_payload["priorita"] = "B"
+        updated_payload["potenziale"] = 3
+        updated_payload["note"] = "TEST_ updated via PUT"
+        # Try to spoof id and created_at - backend must preserve original
+        updated_payload["id"] = "spoofed-id-should-be-ignored"
+        updated_payload["created_at"] = "1999-01-01T00:00:00+00:00"
+
+        r = api.put(f"{API}/leads/{original_id}", json=updated_payload, headers=auth_headers)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["id"] == original_id, "id must be preserved"
+        assert data["created_at"] == original_created_at, "created_at must be preserved"
+        assert data["ragione_sociale"].endswith("_MODIFICATA")
+        assert data["priorita"] == "B"
+        assert data["potenziale"] == 3
+        assert data["note"] == "TEST_ updated via PUT"
+
+        # Verify persistence via GET
+        g = api.get(f"{API}/leads/{original_id}", headers=auth_headers)
+        assert g.status_code == 200
+        fetched = g.json()
+        assert fetched["id"] == original_id
+        assert fetched["created_at"] == original_created_at
+        assert fetched["ragione_sociale"].endswith("_MODIFICATA")
+        assert fetched["priorita"] == "B"
+        assert fetched["potenziale"] == 3
+
+    def test_put_lead_not_found(self, api, auth_headers):
+        payload = dict(FULL_PAYLOAD)
+        r = api.put(f"{API}/leads/{uuid.uuid4()}", json=payload, headers=auth_headers)
+        assert r.status_code == 404
+
+
 # ------------------------------------------------------------------ export
 class TestExport:
     def test_export_requires_auth(self, api):

@@ -10,6 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { LOGO_URL } from "@/lib/brand";
+import { LeadDetail } from "@/components/LeadDetail";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -33,6 +34,7 @@ export default function History() {
   const [fPriorita, setFPriorita] = useState("all");
   const [fFiera, setFFiera] = useState("");
   const [fRagione, setFRagione] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
 
   const buildParams = useCallback(() => {
     const p = {};
@@ -213,7 +215,13 @@ export default function History() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {leads.map((l) => (
-              <div key={l.id} data-testid={`lead-card-${l.id}`} className="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-buscema-gold p-4 shadow-sm">
+              <button
+                key={l.id}
+                type="button"
+                data-testid={`lead-card-${l.id}`}
+                onClick={() => setSelectedId(l.id)}
+                className="text-left bg-white rounded-2xl border border-gray-200 border-l-4 border-l-buscema-gold p-4 shadow-sm transition-all hover:shadow-md hover:border-l-buscema-green active:scale-[0.99] cursor-pointer"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="font-heading font-semibold text-buscema-green truncate">{l.ragione_sociale || "—"}</h3>
@@ -235,11 +243,20 @@ export default function History() {
                   {l.cellulare && <p className="truncate">📱 {l.cellulare}</p>}
                   <p className="text-xs text-gray-400 pt-1">{l.nome_fiera} {l.anno} · {l.paese}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </main>
+
+      {selectedId && (
+        <LeadDetail
+          leadId={selectedId}
+          token={token}
+          onClose={() => setSelectedId(null)}
+          onSaved={fetchLeads}
+        />
+      )}
     </div>
   );
 }
