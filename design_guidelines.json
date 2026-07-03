@@ -1,0 +1,133 @@
+{
+  "theme": "light",
+  "archetype": "1 (Organic & Earthy / High-Contrast B2B Hybrid)",
+  "colors": {
+    "background": "#FFFFFF",
+    "surface": "#F9FAFB",
+    "primary": "#1A432B",
+    "primary_foreground": "#FFFFFF",
+    "secondary": "#C5A059",
+    "secondary_foreground": "#FFFFFF",
+    "accent_tricolor": ["#009246", "#FFFFFF", "#CE2B37"],
+    "text_main": "#111827",
+    "text_muted": "#6B7280",
+    "border": "#E5E7EB",
+    "success": "#10B981",
+    "error": "#EF4444"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Manrope",
+    "h1": "text-3xl font-bold tracking-tight text-[#1A432B]",
+    "h2": "text-xl font-semibold tracking-tight text-[#1A432B] uppercase",
+    "h3": "text-lg font-medium text-[#111827]",
+    "body": "text-base text-[#111827] leading-relaxed",
+    "label": "text-sm font-semibold tracking-wide text-[#6B7280] uppercase"
+  },
+  "layout": {
+    "mobile_first": true,
+    "container": "w-full max-w-3xl mx-auto px-4 md:px-8 pb-28",
+    "spacing": "space-y-8",
+    "ergonomics": {
+      "touch_targets": "min-h-[56px] for all interactive elements",
+      "thumb_zone": "Sticky save button at bottom, critical actions in natural thumb reach",
+      "one_handed_use": "Full-width inputs, stacked columns, massive hit areas for checkboxes/radios/chips"
+    }
+  },
+  "sections": [
+    {
+      "name": "Header",
+      "description": "Sticky top bar containing Buscema Gastronomia mock logo (Text + Chef Hat icon in Gold), and dynamic 'Nome Fiera + Anno'. Bottom border with subtle 3-pixel Italian tricolor line.",
+      "components": ["Header", "Logo", "Typography"]
+    },
+    {
+      "name": "Trigger Acquisizione",
+      "description": "Hybrid capture area. Two large, thumb-friendly buttons stacked vertically on mobile.",
+      "components": ["Button (Primary: Scansiona QR/vCard)", "Button (Secondary Outline/Gold: Foto Biglietto OCR)"]
+    },
+    {
+      "name": "Anagrafica",
+      "description": "Standard contact form. Name, Surname, Email, Phone, Company, Role.",
+      "components": ["Input", "Label", "FormGroup"]
+    },
+    {
+      "name": "Tipologia Azienda",
+      "description": "Multi-select company type. Render as a wrapping flexbox of toggleable Chips (Badges) for ergonomic 1-tap selection on mobile.",
+      "components": ["Badge/Chip (Interactive)"]
+    },
+    {
+      "name": "Interesse & Packaging",
+      "description": "Checkboxes for Interest (Brand vs Products) and Packaging/Format options. Grouped logically with Gold accent lines.",
+      "components": ["Checkbox", "Label"]
+    },
+    {
+      "name": "Progetto & Campioni",
+      "description": "Text fields or large touch toggles to detail the prospect's project and sample requests.",
+      "components": ["Textarea", "Input"]
+    },
+    {
+      "name": "Valutazione",
+      "description": "Priority rating (A/B/C/D) using a massive 2x2 grid of Radio button cards. 5-star interactive rating component for Potential.",
+      "components": ["RadioGroup", "Custom StarRating (Lucide Icons)"]
+    },
+    {
+      "name": "Note",
+      "description": "Free text area for additional notes.",
+      "components": ["Textarea"]
+    },
+    {
+      "name": "Sticky Save",
+      "description": "Fixed bottom bar with a massive 'Salva Scheda' button in primary Dark Green, high shadow for prominence.",
+      "components": ["Button (Full width, fixed bottom)"]
+    },
+    {
+      "name": "Storico Contatti (Protected)",
+      "description": "Password protected list view. Includes filters (Priority/Fair/Company) and CSV Export button.",
+      "components": ["Table/List", "Input (Password)", "Select (Filters)", "Button (Export)"]
+    }
+  ],
+  "components_customization": {
+    "button": "Rounded-xl, heavy font weight. Primary: bg-[#1A432B] hover:bg-[#133821] text-white. Secondary: border-2 border-[#C5A059] text-[#C5A059] bg-transparent hover:bg-[#C5A059] hover:text-white.",
+    "input": "Rounded-xl, border-gray-300, min-h-[56px] (critical touch ergonomics), focus:ring-2 focus:ring-[#1A432B] focus:border-transparent. Padding p-4. Text base or larger.",
+    "textarea": "Rounded-xl, border-gray-300, focus:ring-2 focus:ring-[#1A432B]. Padding p-4.",
+    "card": "Border border-[#E5E7EB] bg-white rounded-2xl shadow-sm. Use gold accent borders (border-l-4 border-[#C5A059]) for key sections.",
+    "icons": "Use lucide-react. Stroke width 2."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "background_login_history",
+        "url": "https://images.pexels.com/photos/4863013/pexels-photo-4863013.jpeg",
+        "description": "Subtle dark green texture for login/history view backgrounds to contrast with the clean white data entry form."
+      },
+      {
+        "category": "ingredient_accent_artichoke",
+        "url": "https://images.pexels.com/photos/36600034/pexels-photo-36600034.jpeg",
+        "description": "Fresh artichokes image, can be used softly in the success/thank you screen or empty state of the history view."
+      }
+    ],
+    "logos": [
+      {
+        "category": "brand_logo",
+        "url": null,
+        "description": "Construct typography-based logo: Text 'BUSCEMA' in Dark Green (#1A432B) + Lucide 'ChefHat' icon in Gold (#C5A059)."
+      }
+    ]
+  },
+  "testing": {
+    "data_testid_rules": "All interactive elements (buttons, inputs, selects, rating stars, toggles) MUST have a data-testid attribute formatted as kebab-case role-based (e.g., 'submit-lead-button', 'priority-a-radio', 'star-rating-4', 'company-type-chip')."
+  },
+  "instructions_to_main_agent": [
+    "Install fonts 'Outfit' and 'Manrope'.",
+    "Set up Tailwind colors with custom Buscema brand palette (Primary: #1A432B, Accent: #C5A059).",
+    "Build a single vertically scrolling column for the data entry form, wrapped in a container that constraints width on desktop.",
+    "Implement the 'Valutazione' section with an interactive 5-star rating using the lucide-react 'Star' icon.",
+    "Company types should be tap-friendly chips (rounded badges, e.g. min-h-[48px] with distinct active states) instead of a native select, for better 1-tap mobile ergonomics.",
+    "The Save Contact (Salva Scheda) button MUST be contained within a fixed div at the bottom of the viewport with a backdrop blur or solid bg so it doesn't overlap text awkwardly.",
+    "The Header must feature a small 3-color bar representing the Italian flag (Green #009246 / White #FFFFFF / Red #CE2B37).",
+    "Add a separate route or state for 'Storico Contatti' which requires a password before showing the list of leads.",
+    "Include export CSV logic for the Contact History.",
+    "Use massive touch targets for EVERYTHING. Minimum height 56px for inputs/buttons.",
+    "Follow standard form structure and state management. Do not create complex nested states if unnecessary."
+  ]
+}
