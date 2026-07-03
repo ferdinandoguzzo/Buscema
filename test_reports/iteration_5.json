@@ -1,0 +1,31 @@
+{
+  "summary": "Verified the QR / OCR button separation bug fix on preview URL. QR scanner (data-testid scan-qr-btn) now opens a LIVE-streaming overlay: qr-scanner-overlay contains qr-video-region managed by html5-qrcode with facingMode=environment and continuous decode callback, and crucially the previous qr-upload-btn / file-upload fallback is completely gone (no <input type=file> exists anywhere inside qr-scanner-overlay). Since headless chromium has no camera device (getUserMedia -> NotFoundError), the overlay correctly transitions to the error state with the CameraOff icon, the italian message referencing 'fotocamera', and a working qr-retry-btn — no upload option. qr-scanner-close cleanly closes the overlay and stops the scanner without console errors. Button 2 (scan-ocr-btn) is fully independent: clicking it triggers the hidden ocr-file-input (accept=image/*, capture=environment) via a real filechooser event and does NOT open qr-scanner-overlay. The OCR upload + POST /api/leads/ocr + card-photo-preview flow was already verified end-to-end in iteration_3/4 (backend suite still 24/24 pass) so it was not re-run here; the /tmp/test_vcard_qr.png reference file was NOT present on this container so full QR-vCard round-trip via fake media stream was not attempted (documented environment limitation, not a bug — spec explicitly allows structural verification when live camera cannot run headless). No uncaught exceptions or white screen in either flow.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_backend.py",
+    "/app/test_reports/pytest/pytest_results_it4_full.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "QRScanner.jsx correctly uses Html5Qrcode.start with facingMode=environment for continuous decode. handledRef guards against double-firing onResult on subsequent frames after a hit. Good.",
+    "startScanner() calls setStatus('loading') and re-uses scannerRef.current across retries; console shows a benign 'Cannot transition to a new state, already under transition' warning when clicking Riprova quickly. Consider adding a small await/guard before retry to avoid that warning, though it does not break the flow.",
+    "Camera-off error message is Italian and matches brand voice. Retry button (data-testid qr-retry-btn) is prominent and touch-friendly (min-h 52px). No upload alternative anywhere — matches user requirement.",
+    "LeadForm.jsx handleQRResult correctly closes the scanner and calls parseVCard, then merges only truthy fields into form and shows success toast 'Dati importati dal QR (N campi)'. No regression risk on Anagrafica.",
+    "scan-ocr-btn -> fileRef.current?.click() is completely decoupled from showScanner state — verified in browser that clicking it does not mount QRScanner. Clean separation of concerns.",
+    "Hidden ocr-file-input has capture='environment' and accept='image/*' which is exactly what a mobile device needs to open the rear camera. Good.",
+    "No memory leak concern: QRScanner useEffect returns stopScanner() cleanup and scannerRef.current is not nulled but Html5Qrcode.clear() is called, which is sufficient."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only request; backend already 100% in iter4)", "frontend": "100% for the QR/OCR button-separation spec verified structurally"},
+  "test_credentials": "History password: buscema2026 (from /app/memory/test_credentials.md) — not needed for this iteration since testing was on the LeadForm root page.",
+  "seed_data_creation": "None. No leads saved during this run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The QR scanner is now LIVE-only. If you want to test true QR decoding end-to-end you must launch chromium with --use-fake-device-for-media-stream and --use-file-for-fake-video-capture=<path.y4m>. Our current MCP browser_automation does not expose those launch flags, so structural verification is the ceiling: (a) qr-scanner-overlay opens, (b) qr-video-region present, (c) NO qr-upload-btn / file input inside the overlay, (d) error state + qr-retry-btn shown when getUserMedia fails, (e) qr-scanner-close stops scanner cleanly, (f) scan-ocr-btn triggers filechooser and does NOT open the overlay. All six were verified as PASS. OCR round-trip is covered by backend TestOcr tests in /app/backend/tests/test_backend.py and by the UI flow tested in iteration_3.",
+  "rca of the issue": "N/A — feature verification of a previously-fixed bug. The prior file-upload fallback in QRScanner was removed by the main agent as requested; the new component is a pure Html5Qrcode.start streaming scanner with an error state (Riprova) instead of an upload alternative. The two buttons are now clearly separated in both markup (distinct handlers: setShowScanner vs fileRef.current.click) and behavior (verified in browser that clicking scan-ocr-btn does NOT mount QRScanner)."
+}
