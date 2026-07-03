@@ -17,7 +17,7 @@ export const QRScanner = ({ onResult, onClose }) => {
     let active = true;
 
     const qrbox = (vw, vh) => {
-      const size = Math.floor(Math.min(vw, vh) * 0.7);
+      const size = Math.max(50, Math.floor(Math.min(vw, vh) * 0.7));
       return { width: size, height: size };
     };
 
