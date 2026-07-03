@@ -1,0 +1,28 @@
+{
+  "summary": "Full verification of the new DELETE lead feature (backend + frontend). Backend: added TestLeadDelete class with 5 tests (all pass) covering 401 without token, 401 with bad token, happy-path 200 {deleted:true,id:<id>} + GET-after-delete returns 404 + list no longer contains the id, 404 for unknown id, and idempotency check (second DELETE returns 404). Full backend suite: 24/24 pytest tests pass (auth + CRUD + get/put + delete + export + OCR). Frontend Playwright on preview URL: seeded 3 TEST_DelFiera leads, logged in with buscema2026, opened first lead-card -> lead-detail-overlay -> lead-detail-delete-btn opens delete-confirm-dialog with the contact name and 'irreversibile' warning. delete-cancel-btn closes the dialog and lead remains (list count unchanged, detail overlay stays open). Re-opened, delete-confirm-btn: success toast 'Scheda eliminata' appeared, detail overlay closed, history list refreshed via onSaved=fetchLeads and the deleted lead-card testid is gone (filter now shows the 2 remaining seeded leads). Regression: editing nome_fiera and clicking lead-detail-save-btn on a remaining card still shows 'Modifiche salvate' toast and closes overlay. LeadForm create flow at '/' still works ('Scheda salvata con successo' toast). All TEST_ seed data cleaned up from MongoDB.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_backend.py",
+    "/app/test_reports/pytest/pytest_results_it4.xml",
+    "/app/test_reports/pytest/pytest_results_it4_full.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LeadDetail.jsx handleDelete sets deleting=true but never resets to false on the happy path (only in the catch). This is fine because the component unmounts on success (onClose is called), but if for any reason onClose fails to unmount the component (e.g., parent keeps selectedId), the button would stay in 'Eliminazione...' state. Consider a finally block to reset it defensively.",
+  "The DELETE endpoint returns 200 with a JSON body {deleted:true,id}. Convention could be 204 No Content, but 200 with body is fine and matches the spec.",
+  "server.py delete_lead does not check authorization ownership (no user model in this app - single shared operator password), so any authenticated operator can delete any lead. This matches the app's single-tenant design.",
+  "LeadDetail's AlertDialog is nested inside the sticky overlay. Radix portal handles the dialog correctly (verified: delete-confirm-dialog appears above overlay, no click-through issues, delete-cancel-btn closes only the dialog not the overlay).",
+  "No soft-delete or audit trail - deletes are permanent immediately. If the app grows, consider adding a deleted_at flag + admin restore. Currently acceptable for MVP."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_backend.py (added TestLeadDelete class with 5 tests)"
+  ],
+  "success_rate": {"backend": "100% (24/24 including 5 new DELETE tests)", "frontend": "100% (delete cancel/confirm, edit-save regression, create regression all pass)"},
+  "test_credentials": "History password: buscema2026 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Seeded 3 leads via API POST with nome_fiera='TEST_DelFiera' + several pytest TEST_ leads via TestLeadDelete/TestLeadGetUpdate. All 14 TEST_ leads were cleaned up from MongoDB via delete_many after the run. DB now contains 0 TEST_ leads.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend suite /app/backend/tests/test_backend.py now covers: history auth (2), leads CRUD list/create/filter (5), single GET+PUT with id/created_at preservation (6), single DELETE with 401/404/happy-path/idempotency (5), CSV export (3), OCR with real Emergent LLM (2) = 24 tests all passing. The DELETE feature is fully wired: backend /api/leads/{id} auth-gated + 404 handling, LeadDetail.jsx uses shadcn AlertDialog with data-testids lead-detail-delete-btn / delete-confirm-dialog / delete-cancel-btn / delete-confirm-btn, and onSaved=fetchLeads refresh in History.jsx correctly removes the deleted card from the list.",
+  "rca of the issue": "N/A - feature verification, no bugs found. Cancel and confirm paths behave exactly as specified; edit/save and create flows unaffected."
+}

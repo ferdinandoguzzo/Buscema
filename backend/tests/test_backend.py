@@ -270,6 +270,60 @@ class TestLeadGetUpdate:
         assert r.status_code == 404
 
 
+# ------------------------------------------------------------------ single lead DELETE
+class TestLeadDelete:
+    def _create(self, api, ragione="TEST_Del"):
+        p = dict(FULL_PAYLOAD)
+        p["ragione_sociale"] = f"{ragione}_{uuid.uuid4().hex[:6]}"
+        r = api.post(f"{API}/leads", json=p)
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    def test_delete_lead_requires_auth(self, api):
+        created = self._create(api)
+        r = api.delete(f"{API}/leads/{created['id']}")
+        assert r.status_code == 401
+        body = r.json()
+        assert "detail" in body
+
+    def test_delete_lead_bad_token(self, api):
+        created = self._create(api)
+        r = api.delete(f"{API}/leads/{created['id']}",
+                       headers={"Authorization": "Bearer garbage"})
+        assert r.status_code == 401
+
+    def test_delete_lead_ok_and_persisted(self, api, auth_headers):
+        created = self._create(api, ragione="TEST_DelOK")
+        lead_id = created["id"]
+        r = api.delete(f"{API}/leads/{lead_id}", headers=auth_headers)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body.get("deleted") is True
+        assert body.get("id") == lead_id
+        # GET should now 404
+        g = api.get(f"{API}/leads/{lead_id}", headers=auth_headers)
+        assert g.status_code == 404
+        # And the lead is gone from the list
+        lst = api.get(f"{API}/leads", headers=auth_headers,
+                      params={"ragione_sociale": created["ragione_sociale"]})
+        assert lst.status_code == 200
+        assert all(item["id"] != lead_id for item in lst.json())
+
+    def test_delete_lead_not_found(self, api, auth_headers):
+        r = api.delete(f"{API}/leads/{uuid.uuid4()}", headers=auth_headers)
+        assert r.status_code == 404
+        body = r.json()
+        assert "detail" in body
+
+    def test_delete_lead_idempotent_second_call_404(self, api, auth_headers):
+        created = self._create(api, ragione="TEST_DelIdem")
+        lead_id = created["id"]
+        r1 = api.delete(f"{API}/leads/{lead_id}", headers=auth_headers)
+        assert r1.status_code == 200
+        r2 = api.delete(f"{API}/leads/{lead_id}", headers=auth_headers)
+        assert r2.status_code == 404
+
+
 # ------------------------------------------------------------------ export
 class TestExport:
     def test_export_requires_auth(self, api):
